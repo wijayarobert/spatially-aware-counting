@@ -10,6 +10,7 @@ import open_clip
 
 from models_vit import CrossAttentionBlock
 from util.pos_embed import get_2d_sincos_pos_embed
+import torchvision.transforms as transforms 
 
 
 class CountingNetwork(nn.Module):
@@ -85,6 +86,10 @@ class CountingNetwork(nn.Module):
             "ViT-B-16", pretrained="laion2b_s34b_b88k"
         )
 
+        self.dinov2_vitb14 = torch.hub_load(
+            'facebookresearch/dinov2', 'dino_vitb14'
+        ) 
+
         # Freeze all the weights of the text encoder.
         vis_copy = copy.deepcopy(self.clip_model.visual)
         for param in self.clip_model.parameters():
@@ -117,18 +122,37 @@ class CountingNetwork(nn.Module):
 
     def forward_img_encoder(self, imgs):
         return self.clip_model.encode_image(imgs)
+    
+    def forward_dino_img_encoder(self, imgs):
+        transform = transforms.Compose([
+            transform.Resize(224),
+            transform.CenterCrop(224),
+            transform.ToTensor()
+        ])
+        t_imgs = transform(imgs)
+        return self.dinov2_vitb14(t_imgs.unsqueeze(0))
+
 
     def foward_txt_encoder(self, counting_queries):
         return self.clip_model.encode_text(counting_queries)
 
-    def forward_fim(self, img_tokens, txt_tokens):
+    # def forward_fim(self, img_tokens, txt_tokens):
+    #     # Add positional embedding to image tokens.
+    #     img_tokens = img_tokens + self.fim_pos_embed
+
+    #     # Pass image tokens and counting query tokens through the feature interaction module.
+    #     x = img_tokens
+    #     for blk in self.fim_blocks:
+    #         x = blk(x, txt_tokens)
+
+    #     return self.fim_norm(x)
+    
+    def forward_fim(self, img_tokens):
         # Add positional embedding to image tokens.
         img_tokens = img_tokens + self.fim_pos_embed
 
         # Pass image tokens and counting query tokens through the feature interaction module.
         x = img_tokens
-        for blk in self.fim_blocks:
-            x = blk(x, txt_tokens)
 
         return self.fim_norm(x)
 
@@ -171,9 +195,10 @@ class CountingNetwork(nn.Module):
         return x.squeeze(-3)
 
     def forward(self, imgs, counting_queries):
-        img_tokens = self.forward_img_encoder(imgs)
+        img_tokens = self.forward_dino_img_encoder(imgs)
         # Add a token dimension to the CLIP text embeddings.
         txt_tokens = self.foward_txt_encoder(counting_queries).unsqueeze(-2)
-        fim_output_tokens = self.forward_fim(img_tokens, txt_tokens)
+        # fim_output_tokens = self.forward_fim(img_tokens, txt_tokens)
+        fim_output_tokens = self.forward_fim(img_tokens)
         pred = self.forward_decoder(fim_output_tokens)
         return pred
