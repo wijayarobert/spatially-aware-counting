@@ -11,13 +11,13 @@ import open_clip
 from models_vit import CrossAttentionBlock
 from util.pos_embed import get_2d_sincos_pos_embed
 import torchvision.transforms as transforms 
-import numpy as np
+
 
 class CountingNetwork(nn.Module):
     def __init__(
         self,
-        img_encoder_num_output_tokens=256,
-        fim_embed_dim=768,
+        img_encoder_num_output_tokens=196,
+        fim_embed_dim=512,
         fim_depth=2,
         fim_num_heads=16,
         mlp_ratio=4.0,
@@ -86,8 +86,8 @@ class CountingNetwork(nn.Module):
             "ViT-B-16", pretrained="laion2b_s34b_b88k"
         )
 
-        self.dinov2_vitb14 = torch.hub.load(
-            'facebookresearch/dinov2', 'dinov2_vitb14'
+        self.dinov2_vitb14 = torch.hub_load(
+            'facebookresearch/dinov2', 'dino_vitb14'
         ) 
 
         # Freeze all the weights of the text encoder.
@@ -124,27 +124,13 @@ class CountingNetwork(nn.Module):
         return self.clip_model.encode_image(imgs)
     
     def forward_dino_img_encoder(self, imgs):
-        # Define the image preprocessing pipeline
-        preprocess = transforms.Compose([
-            transforms.ToPILImage(),
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        transform = transforms.Compose([
+            transform.Resize(224),
+            transform.CenterCrop(224),
+            transform.ToTensor()
         ])
-
-        # Preprocess the images
-        imgs = [preprocess(img) for img in imgs]
-
-        batch = torch.stack(imgs)
-        batch = batch.cuda()
-
-        out = self.dinov2_vitb14(batch, is_training=True)        
-        # print(out.keys()) # dict_keys(['x_norm_clstoken', 'x_norm_patchtokens', 'x_prenorm', 'masks'])
-
-        out = out["x_norm_patchtokens"]
-
-        return out
+        t_imgs = transform(imgs)
+        return self.dinov2_vitb14(t_imgs.unsqueeze(0))
 
 
     def foward_txt_encoder(self, counting_queries):
@@ -163,7 +149,10 @@ class CountingNetwork(nn.Module):
     
     def forward_fim(self, img_tokens):
         # Add positional embedding to image tokens.
-        x = img_tokens + self.fim_pos_embed
+        img_tokens = img_tokens + self.fim_pos_embed
+
+        # Pass image tokens and counting query tokens through the feature interaction module.
+        x = img_tokens
 
         return self.fim_norm(x)
 
