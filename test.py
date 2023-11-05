@@ -11,6 +11,7 @@ import torch
 import torch.nn as nn
 import torch.backends.cudnn as cudnn
 from torch.utils.data import Dataset
+import torchvision
 from torchvision import transforms
 from torchvision.transforms.functional import InterpolationMode
 
@@ -19,6 +20,7 @@ from util.FSC147 import TTensor
 from models_counting_network import CountingNetwork
 import open_clip
 
+import cv2
 
 def get_args_parser():
     parser = argparse.ArgumentParser(
@@ -201,9 +203,7 @@ def main(args):
         with torch.no_grad():
             while start + 383 < w:
                 (output,) = model(
-                    open_clip_vit_b_16_preprocess(
-                        samples[:, :, :, start : start + 384]
-                    ),
+                    samples[:, :, :, start : start + 384],
                     text_descriptions,
                 )
                 output = output.squeeze(0)
@@ -231,6 +231,19 @@ def main(args):
                         start = w - 384
 
         pred_cnt = torch.sum(density_map / 60).item()
+
+        # compute and save images
+        density_map = density_map.unsqueeze(0)
+        density_map_normalized = (density_map - density_map.min()) / (density_map.max() - density_map.min())
+        density_map_np = density_map_normalized.cpu().numpy()
+        density_map_np = (density_map_np * 255).astype(np.uint8)
+        density_map_np = np.squeeze(density_map_np)
+        density_map_colored = cv2.applyColorMap(density_map_np, cv2.COLORMAP_JET)
+
+        image_filename = os.path.join(args.output_dir, f'{data_iter_step}_density_map.png')
+        cv2.imwrite(image_filename, density_map_colored)
+
+        torchvision.utils.save_image(samples[0], (os.path.join(args.output_dir, f'{data_iter_step}_original.png')))
 
         gt_cnt = gt_dots.shape[1]
         cnt_err = abs(pred_cnt - gt_cnt)

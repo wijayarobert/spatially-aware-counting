@@ -204,7 +204,7 @@ class TrainData(Dataset):
         }
         sample = self.transform_train(sample)
         return (
-            open_clip_vit_b_16_preprocess(sample["image"]),
+            sample["image"],
             sample["gt_density"],
             sample["text"],
         )
@@ -335,9 +335,9 @@ def main(args):
             metric_logger.log_every(data_loader_train, print_freq, header)
         ):
 
-            lr_sched.adjust_learning_rate(
-                optimizer, data_iter_step / len(data_loader_train) + epoch, args
-            )
+            # lr_sched.adjust_learning_rate(
+            #     optimizer, data_iter_step / len(data_loader_train) + epoch, args
+            # )
 
             samples = samples.to(device, non_blocking=True).half()
             gt_density = gt_density.to(device, non_blocking=True).half()
@@ -416,9 +416,7 @@ def main(args):
             with torch.no_grad():
                 while start + 383 < w:
                     (output,) = model(
-                        open_clip_vit_b_16_preprocess(
-                            samples[:, :, :, start : start + 384]
-                        ),
+                        samples[:, :, :, start : start + 384],
                         text_description,
                     )
                     output = output.squeeze(0)
