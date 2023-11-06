@@ -82,9 +82,7 @@ class CountingNetwork(nn.Module):
         # --------------------------------------------------------------------------
         # CLIP model specifics (contains image and text encoder modules).
 
-        self.clip_model = open_clip.create_model(           # in-place of clip (kept for reference)
-            "ViT-B-16", pretrained="laion2b_s34b_b88k"
-        )
+
 
         self.dinov2_vitb14 = torch.hub.load(                # dinov2_vitb14 is used
             'facebookresearch/dinov2', 'dinov2_vitb14'
