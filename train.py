@@ -129,6 +129,7 @@ def get_args_parser():
     return parser
 
 
+# following is not used (kept for reference)
 # See https://github.com/mlfoundations/open_clip/blob/37b729bc69068daa7e860fb7dbcf1ef1d03a4185/src/open_clip/transform.py
 open_clip_vit_b_16_preprocess = Compose(
     [
@@ -334,7 +335,7 @@ def main(args):
         for data_iter_step, (samples, gt_density, text_descriptions) in enumerate(
             metric_logger.log_every(data_loader_train, print_freq, header)
         ):
-
+            # a fixed learning rate of 6.25e-6 is used
             # lr_sched.adjust_learning_rate(
             #     optimizer, data_iter_step / len(data_loader_train) + epoch, args
             # )

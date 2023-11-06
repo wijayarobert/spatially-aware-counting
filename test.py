@@ -82,6 +82,7 @@ def get_args_parser():
     return parser
 
 
+# following is not used (kept for reference)
 open_clip_vit_b_16_preprocess = transforms.Compose(
     [
         transforms.Resize(
