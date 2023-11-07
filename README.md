@@ -4,6 +4,8 @@
 ![enter image description here](https://i.ibb.co/0Xj9wNT/arch-4.png)
 Abstract. 
 
+> We employ a self-supervised knowledge distillation model, DINOv2, as an image encoder to improve the feature representation of input images. To preserve the spatial relationships inherent within the input images, we incorporate positional embeddings into the visual feature representation before being passed to ConvNet basd decoder. Experimental results on the class-agnostic counting dataset, FSC-147, show that our method is comparable to established methods and is effective in counting objects with more complicated structures.*
+
 ## Installation
 #### 1. Download Dataset
 We use FSC-147 dataset. Please download the dataset here:
@@ -33,13 +35,13 @@ python test.py --data_split "test" --output_dir "./test" --resume "./results/che
 
 ## Model Checkpoint
 
-The model checkpoint can be downloaded here: [Google drive](https://drive.google.com/file/d/1qI7DmMlT5q1qvnpj2jRQml3iVdS63xf4/view?pli=1)
+The model checkpoint can be downloaded here: [Google drive](https://drive.google.com/file/d/1Im3uSP2KFRBt1n3d2qv5Qje4rfkCSDR9/view?usp=sharing)
 
 ## Results
 
-![enter image description here](https://i.ibb.co/TmmR2kP/Screenshot-from-2023-11-07-08-24-01.png)
-![enter image description here](https://i.ibb.co/yyvM059/Screenshot-from-2023-11-07-08-22-24.png)
-![enter image description here](https://i.ibb.co/GTJq77C/Screenshot-from-2023-11-07-08-23-25.png)
+<a href="https://imgbb.com/"><img src="https://i.ibb.co/PMTPPnv/Screenshot-from-2023-11-07-14-07-15.png" alt="Screenshot-from-2023-11-07-14-07-15" border="0"></a>
+<a href="https://ibb.co/B3LgMSX"><img src="https://i.ibb.co/tKBbrW7/Screenshot-from-2023-11-07-14-10-46.png" alt="Screenshot-from-2023-11-07-14-10-46" border="0"></a>
+<a href="https://imgbb.com/"><img src="https://i.ibb.co/vjrbnM4/Screenshot-from-2023-11-07-14-11-18.png" alt="Screenshot-from-2023-11-07-14-11-18" border="0"></a>
 
 ## Acknowledgement
 The code is heavily based on [CounTX](https://github.com/niki-amini-naieni/CounTX). Thanks for the great work.
