@@ -129,7 +129,6 @@ def get_args_parser():
     return parser
 
 
-# following is not used (kept for reference)
 # See https://github.com/mlfoundations/open_clip/blob/37b729bc69068daa7e860fb7dbcf1ef1d03a4185/src/open_clip/transform.py
 open_clip_vit_b_16_preprocess = Compose(
     [
@@ -205,7 +204,10 @@ class TrainData(Dataset):
         }
         sample = self.transform_train(sample)
         return (
-            sample["image"],
+            # open_clip_vit_b_16_preprocess(
+                sample["image"]
+            # )
+            ,
             sample["gt_density"],
             sample["text"],
         )
@@ -335,7 +337,7 @@ def main(args):
         for data_iter_step, (samples, gt_density, text_descriptions) in enumerate(
             metric_logger.log_every(data_loader_train, print_freq, header)
         ):
-            # a fixed learning rate of 6.25e-6 is used
+
             # lr_sched.adjust_learning_rate(
             #     optimizer, data_iter_step / len(data_loader_train) + epoch, args
             # )
@@ -343,6 +345,8 @@ def main(args):
             samples = samples.to(device, non_blocking=True).half()
             gt_density = gt_density.to(device, non_blocking=True).half()
             text_descriptions = text_descriptions.to(device, non_blocking=True)
+
+            # print(text_descriptions)
 
             with torch.cuda.amp.autocast():
                 output = model(samples, text_descriptions)
@@ -417,7 +421,10 @@ def main(args):
             with torch.no_grad():
                 while start + 383 < w:
                     (output,) = model(
-                        samples[:, :, :, start : start + 384],
+                        # open_clip_vit_b_16_preprocess(
+                            samples[:, :, :, start : start + 384]
+                        # )
+                        ,
                         text_description,
                     )
                     output = output.squeeze(0)

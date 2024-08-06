@@ -5,7 +5,7 @@ import numpy as np
 import os
 import time
 from pathlib import Path
-from PIL import Image
+from PIL import Image, ImageDraw
 
 import torch
 import torch.nn as nn
@@ -21,6 +21,10 @@ from models_counting_network import CountingNetwork
 import open_clip
 
 import cv2
+
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+from skimage.color import rgb2gray
 
 def get_args_parser():
     parser = argparse.ArgumentParser(
@@ -82,7 +86,6 @@ def get_args_parser():
     return parser
 
 
-# following is not used (kept for reference)
 open_clip_vit_b_16_preprocess = transforms.Compose(
     [
         transforms.Resize(
@@ -140,6 +143,11 @@ class TestData(Dataset):
         image = TTensor(image)
 
         return image, dots, text
+
+
+def non_max_suppression(img, thresh):
+    img_max_thresh = (img > (thresh * img.max()))
+    return img_max_thresh * img
 
 
 def main(args):
@@ -204,7 +212,10 @@ def main(args):
         with torch.no_grad():
             while start + 383 < w:
                 (output,) = model(
-                    samples[:, :, :, start : start + 384],
+                    # open_clip_vit_b_16_preprocess(
+                        samples[:, :, :, start : start + 384]
+                    # )
+                    ,
                     text_descriptions,
                 )
                 output = output.squeeze(0)
@@ -231,20 +242,75 @@ def main(args):
                     else:
                         start = w - 384
 
+        # # Save the density map as an image
+        # density_map_np = density_map.cpu().numpy()
+        # density_map_np = (density_map_np / np.max(density_map_np) * 255).astype(np.uint8)
+
+        # # You can specify a directory to save the density map images
+        # output_dir = args.output_dir if args.output_dir else "density_maps"
+        # Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+        # image_filename = os.path.join(output_dir, f'density_map_{data_iter_step}.png')
+        # cv2.imwrite(image_filename, density_map_np)
+
         pred_cnt = torch.sum(density_map / 60).item()
 
         # compute and save images
         density_map = density_map.unsqueeze(0)
+
+        # density_map = density_map / density_map.max()
+
         density_map_normalized = (density_map - density_map.min()) / (density_map.max() - density_map.min())
+        # # print(density_map_normalized)
+
+        # # print(density_map_normalized.squeeze(0))
+        # density_map_normalized = density_map
+        # density_map_normalized = non_max_suppression(density_map_normalized.squeeze(0).cpu().numpy(), 0.1)
+        # density_map_normalized = torch.tensor(density_map_normalized, device=device)
+        # print(density_map_normalized)
         density_map_np = density_map_normalized.cpu().numpy()
         density_map_np = (density_map_np * 255).astype(np.uint8)
         density_map_np = np.squeeze(density_map_np)
-        density_map_colored = cv2.applyColorMap(density_map_np, cv2.COLORMAP_JET)
+        # density_map_colored = cv2.applyColorMap(density_map_np, cv2.COLORMAP_JET)
+        density_map_colored = cv2.applyColorMap(density_map_np, cv2.COLORMAP_HOT)
+        # density_map_colored = np.transpose(density_map_colored, (2, 0, 1))
+        # density_map_colored = density_map_colored.astype(np.float32)
+        # density_map_colored = density_map_colored / 255
+        # density_map_colored = torch.tensor(density_map_colored, device=device)
 
-        image_filename = os.path.join(args.output_dir, f'{data_iter_step}_density_map.png')
+        image_filename = os.path.join(args.output_dir, f'density_map_{data_iter_step}.png')
         cv2.imwrite(image_filename, density_map_colored)
 
-        torchvision.utils.save_image(samples[0], (os.path.join(args.output_dir, f'{data_iter_step}_original.png')))
+        # density_map_colored = np.average(density_map_colored, axis=0)
+        # density_map_colored = torch.tensor(density_map_colored, device=device)
+        
+        # Normalize and apply colormap to the density map
+        # density_map = density_map / density_map.max()
+        # density_map_colored = cm.jet(density_map.cpu().numpy()) # You can use other colormaps as well
+        # density_map_grayscale = rgb2gray(density_map_colored[:,:,:,0:3])
+        # density_map_grayscale = torch.tensor(density_map_grayscale, device=device)
+
+        # Compute and save images
+        # pred = density_map_colored
+        # pred = density_map_normalized
+        # pred = density_map
+
+        # pred = torch.cat((pred, torch.zeros_like(pred), torch.zeros_like(pred)))
+        # fig = samples[0] + pred / 2
+        # fig = torch.clamp(fig, 0, 1)
+
+        # pred_img = Image.new(mode="RGB", size=(w, h), color=(0, 0, 0))
+        # draw = ImageDraw.Draw(pred_img)
+        # draw.text((w-50, h-50), str(round(pred_cnt)), (255, 255, 255))
+        # pred_img = np.array(pred_img).transpose((2, 0, 1))
+        # pred_img = torch.tensor(np.array(pred_img), device=device) + pred
+        # full = torch.cat((samples[0], fig, pred_img), -1)
+
+        # torchvision.utils.save_image(fig, (os.path.join(args.output_dir, f'vis_{data_iter_step}.png')))
+        # torchvision.utils.save_image(pred_img, (os.path.join(args.output_dir, f'pred_{data_iter_step}.png')))
+        # torchvision.utils.save_image(full, (os.path.join(args.output_dir, f'full_{data_iter_step}.png')))
+
+        torchvision.utils.save_image(samples[0], (os.path.join(args.output_dir, f'full_{data_iter_step}.png')))
 
         gt_cnt = gt_dots.shape[1]
         cnt_err = abs(pred_cnt - gt_cnt)
