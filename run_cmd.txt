@@ -6,3 +6,24 @@ python train.py --output_dir "../../FromGitHubOutputs/results" --img_dir "../../
 
 
 
+-----
+
+
+
+python test.py --data_split "val" --output_dir "../../FromGitHubOutputs/results/val" --resume "../../FromGitHubOutputs/results/checkpoint-1000.pth" --img_dir "../../CounTX/data/FSC/images_384_VarV2" --FSC147_anno_file "../../CounTX/data/FSC/FSC_147/annotation_FSC_147_384.json" --FSC147_D_anno_file "../../CounTX/FSC-147-D.json" --data_split_file "../../CounTX/data/FSC/FSC_147/Train_Test_Val_FSC_147.json"
+
+
+
+python test.py --data_split "test" --output_dir "../../FromGitHubOutputs/results/test" --resume "../../FromGitHubOutputs/results/checkpoint-1000.pth" --img_dir "../../CounTX/data/FSC/images_384_VarV2" --FSC147_anno_file "../../CounTX/data/FSC/FSC_147/annotation_FSC_147_384.json" --FSC147_D_anno_file "../../CounTX/FSC-147-D.json" --data_split_file "../../CounTX/data/FSC/FSC_147/Train_Test_Val_FSC_147.json"
+
+
+
+-----
+
+
+
+python test_reproduce_paper.py --data_split "test" --output_dir "../../FromGitHubOutputs/results/test" --resume "../../FromGitHubOutputs/results/paper-model.pth" --img_dir "../../CounTX/data/FSC/images_384_VarV2" --FSC147_anno_file "../../CounTX/data/FSC/FSC_147/annotation_FSC_147_384.json" --FSC147_D_anno_file "../../CounTX/FSC-147-D.json" --data_split_file "../../CounTX/data/FSC/FSC_147/Train_Test_Val_FSC_147.json"
+
+
+
+
