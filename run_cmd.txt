@@ -1,0 +1,8 @@
+python train.py --output_dir "../../FromGitHubOutputs/results" --img_dir "../../CounTX/data/FSC/images_384_VarV2" --gt_dir "../../CounTX/data/FSC/gt_density_map_adaptive_384_VarV2" --class_file "../../CounTX/data/FSC/FSC_147/ImageClasses_FSC_147.txt" --FSC147_anno_file "../../CounTX/data/FSC/FSC_147/annotation_FSC_147_384.json" --FSC147_D_anno_file "../../CounTX/FSC-147-D.json" --data_split_file "../../CounTX/data/FSC/FSC_147/Train_Test_Val_FSC_147.json" --batch_size=8 --epochs=1000 >>./training.log 2>&1 &
+
+
+
+python train.py --output_dir "../../FromGitHubOutputs/results" --img_dir "../../CounTX/data/FSC/images_384_VarV2" --gt_dir "../../CounTX/data/FSC/gt_density_map_adaptive_384_VarV2" --class_file "../../CounTX/data/FSC/FSC_147/ImageClasses_FSC_147.txt" --FSC147_anno_file "../../CounTX/data/FSC/FSC_147/annotation_FSC_147_384.json" --FSC147_D_anno_file "../../CounTX/FSC-147-D.json" --data_split_file "../../CounTX/data/FSC/FSC_147/Train_Test_Val_FSC_147.json" --batch_size=8 --epochs=1000 --resume="../../FromGitHubOutputs/results/checkpoint-1000.pth" >>./training.log 2>&1 &
+
+
+
